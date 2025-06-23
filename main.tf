@@ -1,3 +1,20 @@
+module "s3" {
+  source = "./Modules/s3"
+}
+
+module "dynamodb_table" {
+  source = "./Modules/dynamoDB"
+}
+
+module "vpc" {
+  vpc_name   = "terraform-vpc"
+  source     = "./Modules/Network"
+  cidr_block = "10.0.0.0/16"
+}
+
+
+
+
 # provider "aws" {
 #   region = "me-south-1"
 # }
@@ -11,6 +28,15 @@
 #   bucket = aws_s3_bucket.terraform_state_lock.id
 #   versioning_configuration {
 #     status = "Enabled"
+#   }
+# }
+
+# terraform {
+#   backend "s3" {
+#     bucket = "terraform-state-lock01"
+#     key = "terraform.tfstate"
+#     region = "me-south-1"
+#     dynamodb_table = "terraform-locking"
 #   }
 # }
 
