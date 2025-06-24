@@ -1,15 +1,32 @@
-# module "s3" {
-#   source = "./Modules/s3"
-# }
+module "s3" {
+  source = "./Modules/s3"
+}
 
-# module "dynamodb_table" {
-#   source = "./Modules/dynamoDB"
-# }
+module "dynamodb_table" {
+  source = "./Modules/dynamoDB"
+}
 
 module "vpc" {
   vpc_name   = "terraform-vpc"
   source     = "./Modules/Network"
   cidr_block = "10.0.0.0/16"
+}
+
+module "ec2_instance" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+
+  name = "single-instance"
+
+  instance_type          = "t2.micro"
+  key_name               = "user1"
+  monitoring             = true
+  vpc_security_group_ids = ["sg-12345678"]
+  subnet_id              = "subnet-eddcdzz4"
+
+  tags = {
+    Terraform   = "true"
+    Environment = "dev"
+  }
 }
 
 module "eks" {
@@ -21,7 +38,7 @@ module "eks" {
   subnet_ids      = module.vpc.public_subnets
   vpc_id          = module.vpc.vpc_id
 
-  manage_aws_auth_configmap = true
+  # manage_aws_auth_configmap = true
 
   eks_managed_node_groups = {
     default = {
