@@ -1,10 +1,10 @@
-module "s3" {
-  source = "./Modules/s3"
-}
+# module "s3" {
+#   source = "./Modules/s3"
+# }
 
-module "dynamodb_table" {
-  source = "./Modules/dynamoDB"
-}
+# module "dynamodb_table" {
+#   source = "./Modules/dynamoDB"
+# }
 
 module "vpc" {
   vpc_name   = "terraform-vpc"
@@ -12,24 +12,38 @@ module "vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "20.13.0"
 
+  cluster_name    = "my-eks"
+  cluster_version = "1.29"
+  subnet_ids      = module.vpc.public_subnets
+  vpc_id          = module.vpc.vpc_id
 
+  manage_aws_auth_configmap = true
 
-# provider "aws" {
-#   region = "me-south-1"
-# }
+  eks_managed_node_groups = {
+    default = {
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
+      instance_types = ["t3.small"]
+    }
+  }
+}
 
-# resource "aws_s3_bucket" "terraform_state_lock" {
-#   bucket        = "terraform-state-lock01"
-#   force_destroy = true
-# }
+resource "aws_s3_bucket" "terraform_state_lock" {
+  bucket        = "terraform-state-lock01"
+  force_destroy = true
+}
 
-# resource "aws_s3_bucket_versioning" "versioning" {
-#   bucket = aws_s3_bucket.terraform_state_lock.id
-#   versioning_configuration {
-#     status = "Enabled"
-#   }
-# }
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.terraform_state_lock.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 
 # terraform {
 #   backend "s3" {
@@ -40,15 +54,15 @@ module "vpc" {
 #   }
 # }
 
-# resource "aws_dynamodb_table" "terraform-lock-table" {
-#   name         = "terraform-locking"
-#   billing_mode = "PAY_PER_REQUEST"
-#   hash_key     = "LockID"
-#   attribute {
-#     name = "LockID"
-#     type = "S"
-#   }
-# }
+resource "aws_dynamodb_table" "terraform-lock-table" {
+  name         = "terraform-locking"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+}
 
 # resource "aws_instance" "Eco-PowerHub" {
 #   ami = "ami-0e1c38f6ff084aa9d"
